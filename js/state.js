@@ -9,6 +9,7 @@ let STATE = {
   draft: {},              // { pId: qty } — cliente new order
   draftFecha: '',
   draftObs: '',
+  draftSubClienteId: null, // sub-cliente seleccionado (solo distribuidores)
   modal: null,            // order id in view/review modal
   editingOrderId: null,   // order id being edited by gerente
   editItems: {},          // { pId: qty } — copy being edited
