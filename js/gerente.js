@@ -64,6 +64,8 @@ function renderRevisar(pedidos) {
   <div class="order-list">
     ${pedidos.map(p => {
       const cliente = getCliente(p.clienteId);
+      const sc = p.subClienteId ? cliente?.subClientes?.find(s => s.id === p.subClienteId) : null;
+      const nombreCliente = sc ? `${cliente?.nombre||'?'} → ${sc.nombre}` : (cliente?.nombre||'?');
       const items = p.items.map(i => {
         const prod = getProducto(i.pId);
         return `<span class="item-pill">${prod?prod.nombre.split(' ').slice(0,2).join(' '):'?'} ×${i.qty}</span>`;
@@ -73,7 +75,7 @@ function renderRevisar(pedidos) {
         <div class="order-card-header">
           <div class="order-card-meta">
             <span class="order-id">${p.id}</span>
-            <span class="order-client">${cliente?cliente.nombre:'?'}</span>
+            <span class="order-client">${nombreCliente}</span>
             <span class="order-date">Pedido: ${fmtDate(p.fechaPedido)}</span>
           </div>
           <span class="status-badge badge-${p.status}">${statusIcon(p.status)} ${statusLabel(p.status)}</span>
@@ -352,6 +354,8 @@ function renderHistorial() {
     : `<div class="order-list">
     ${todos.map(p => {
       const cliente = getCliente(p.clienteId);
+      const sc = p.subClienteId ? cliente?.subClientes?.find(s => s.id === p.subClienteId) : null;
+      const nombreCliente = sc ? `${cliente?.nombre||'?'} → ${sc.nombre}` : (cliente?.nombre||'?');
       const items = p.items.map(i => {
         const prod = getProducto(i.pId);
         return `<span class="item-pill">${prod?prod.nombre.split(' ').slice(0,2).join(' '):'?'} ×${i.qty}</span>`;
@@ -361,7 +365,7 @@ function renderHistorial() {
         <div class="order-card-header" onclick="openModal('${p.id}')" style="cursor:pointer">
           <div class="order-card-meta">
             <span class="order-id">${p.id}</span>
-            <span class="order-client">${cliente?cliente.nombre:'?'}</span>
+            <span class="order-client">${nombreCliente}</span>
             <span class="order-date">Pedido: ${fmtDate(p.fechaPedido)}</span>
           </div>
           <span class="status-badge badge-${p.status}">${statusIcon(p.status)} ${statusLabel(p.status)}</span>
