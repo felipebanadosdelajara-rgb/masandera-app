@@ -90,9 +90,15 @@ function setQty(pId, val) {
   // No re-render to avoid losing focus
 }
 
+function seleccionarSubCliente(scId) {
+  STATE.draftSubClienteId = scId;
+  STATE.draft = {}; // limpiar carrito al cambiar sub-cliente
+  render();
+}
+
 function enviarPedido() {
   if (!requirePermission('createOrder')) return;
-  
+
   const items = Object.entries(STATE.draft)
     .filter(([,q]) => q > 0)
     .map(([pId, qty]) => ({
@@ -120,9 +126,16 @@ function enviarPedido() {
     return;
   }
 
+  // Verificar sub-cliente si es distribuidor
+  const cliente = getCliente(STATE.user.clienteId);
+  const esDistribuidor = cliente?.tipo === 'distribuidor';
+  const scId = (esDistribuidor && STATE.draftSubClienteId && STATE.draftSubClienteId !== '__propio__')
+    ? STATE.draftSubClienteId : null;
+
   const pedido = {
     id: nextId(),
     clienteId: STATE.user.clienteId,
+    ...(scId ? { subClienteId: scId } : {}),
     items,
     status: 'enviado',
     fechaPedido: todayStr(),
@@ -133,16 +146,24 @@ function enviarPedido() {
   };
 
   PEDIDOS.unshift(pedido);
-  logAction('order_created', { orderId: pedido.id, clienteId: pedido.clienteId, total: pedido.total });
+  logAction('order_created', { orderId: pedido.id, clienteId: pedido.clienteId, subClienteId: scId, total: pedido.total });
+
+  // Nombre para notificación
+  const sc = scId ? cliente?.subClientes?.find(s => s.id === scId) : null;
+  const nombreNotif = sc
+    ? `${cliente?.nombre} → ${sc.nombre}`
+    : (getCliente(pedido.clienteId)?.nombre || pedido.clienteId);
+
   // Notificar a todos los gerentes activos
   DATA.usuarios
     .filter(u => u.rol === 'gerente' && u.activo !== false)
     .forEach(g => addNotification(g.id,
-      `Nuevo pedido ${pedido.id} de ${getCliente(pedido.clienteId)?.nombre || pedido.clienteId} — ${fmt(pedido.total)}.`, 'info'));
-  
+      `Nuevo pedido ${pedido.id} de ${nombreNotif} — ${fmt(pedido.total)}.`, 'info'));
+
   STATE.draft = {};
   STATE.draftFecha = '';
   STATE.draftObs = '';
+  STATE.draftSubClienteId = null;
   STATE.tab = 1;
   showNotif('success', `Pedido ${pedido.id} enviado correctamente (${fmt(pedido.total)}). El gerente lo revisará pronto.`);
 }
