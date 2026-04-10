@@ -20,7 +20,23 @@ function renderCliente() {
 
 function renderNuevoPedido() {
   const cliente = getCliente(STATE.user.clienteId);
-  const productos = getProductosCliente(STATE.user.clienteId);
+  const esDistribuidor = cliente?.tipo === 'distribuidor';
+  const subClientes = esDistribuidor ? (cliente.subClientes || []) : [];
+
+  // Si es distribuidor y no hay selección aún, pre-seleccionar "propio" (el mismo distribuidor)
+  if (esDistribuidor && !STATE.draftSubClienteId) {
+    STATE.draftSubClienteId = '__propio__';
+  }
+
+  // Determinar de quién son los productos
+  // '__propio__' = pedido para el mismo distribuidor; 'sc-xxx' = pedido para sub-cliente
+  const scActivo = esDistribuidor && STATE.draftSubClienteId !== '__propio__'
+    ? subClientes.find(sc => sc.id === STATE.draftSubClienteId)
+    : null;
+  const productos = scActivo
+    ? DATA.productos.filter(p => p.activo && (scActivo.productosAsignados || []).includes(p.id))
+    : getProductosCliente(STATE.user.clienteId);
+
   // Group by tipo for display
   const tipos = [...new Set(productos.map(p => p.tipo))];
   const despachos = getNextDespachos();
@@ -57,6 +73,40 @@ function renderNuevoPedido() {
   }).join('');
 
   return `
+  ${esDistribuidor && subClientes.length ? `
+  <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:16px 20px;margin-bottom:20px">
+    <div style="font-weight:600;font-size:12px;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em">
+      ${icon('users')} Selecciona el sub-cliente para este pedido
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+      <button
+        class="btn ${STATE.draftSubClienteId === '__propio__' ? 'btn-primary' : 'btn-ghost'}"
+        onclick="seleccionarSubCliente('__propio__')"
+        style="font-size:13px;padding:8px 18px">
+        ${icon('home','icon-xs')} ${escapeHtml(cliente.nombre)}
+      </button>
+      <div style="width:1px;height:28px;background:var(--border-light)"></div>
+      ${subClientes.map(sc => `
+        <button
+          class="btn ${STATE.draftSubClienteId === sc.id ? 'btn-primary' : 'btn-ghost'}"
+          onclick="seleccionarSubCliente('${sc.id}')"
+          style="font-size:13px;padding:8px 18px">
+          ${escapeHtml(sc.nombre)}
+        </button>
+      `).join('')}
+    </div>
+    ${scActivo ? `
+    <div style="margin-top:12px;padding:10px 14px;background:var(--primary-light);border-radius:var(--radius-xs);font-size:12px;color:var(--text-mid);display:flex;gap:24px;flex-wrap:wrap">
+      <span>${icon('fileText','icon-xs')} RUT: <strong>${scActivo.rut||'—'}</strong></span>
+      <span>${icon('mapPin','icon-xs')} ${scActivo.ciudad||'—'}</span>
+      <span>${icon('users','icon-xs')} ${scActivo.contacto||'—'}</span>
+      ${scActivo.razonSocial ? `<span style="color:var(--text-light)">${scActivo.razonSocial}</span>` : ''}
+    </div>` : `
+    <div style="margin-top:12px;padding:10px 14px;background:var(--primary-light);border-radius:var(--radius-xs);font-size:12px;color:var(--text-mid)">
+      ${icon('home','icon-xs')} Pedido directo para <strong>${escapeHtml(cliente.nombre)}</strong> — catálogo y precios propios del distribuidor
+    </div>`}
+  </div>` : ''}
+
   <div class="order-panel-wrap">
     <div>
       <div class="alert-info alert-box">
@@ -93,6 +143,15 @@ function renderNuevoPedido() {
 
     <div class="order-summary">
       <h3>Resumen del Pedido</h3>
+      ${esDistribuidor ? `
+      <div style="background:var(--primary-light);border-radius:var(--radius-xs);padding:10px 14px;margin-bottom:12px;font-size:13px">
+        ${scActivo
+          ? `${icon('users','icon-xs')} Para: <strong>${escapeHtml(scActivo.nombre)}</strong>
+             <div style="font-size:11px;color:var(--text-light);margin-top:2px">${scActivo.razonSocial||''}</div>`
+          : `${icon('home','icon-xs')} Para: <strong>${escapeHtml(cliente.nombre)}</strong>
+             <div style="font-size:11px;color:var(--text-light);margin-top:2px">Pedido propio del distribuidor</div>`
+        }
+      </div>` : ''}
       ${draftItems.length === 0 ? `
         <div class="empty-summary">
           <span class="empty-icon">🛒</span>
@@ -183,11 +242,15 @@ function renderMisPedidos(pedidos) {
         const prod = getProducto(i.pId);
         return `<span class="item-pill">${prod?prod.nombre.split(' ').slice(0,2).join(' '):'?'} ×${i.qty}</span>`;
       }).join('');
+      const sc = p.subClienteId ? (() => {
+        const cli = getCliente(p.clienteId);
+        return cli?.subClientes?.find(s => s.id === p.subClienteId);
+      })() : null;
       return `<div class="order-card status-${p.status}" onclick="openModal('${p.id}')">
         <div class="order-card-header">
           <div class="order-card-meta">
             <span class="order-id">${p.id}</span>
-            <span class="order-client">Pedido del ${fmtDate(p.fechaPedido)}</span>
+            <span class="order-client">Pedido del ${fmtDate(p.fechaPedido)}${sc ? ` · <strong>${escapeHtml(sc.nombre)}</strong>` : ''}</span>
           </div>
           <span class="status-badge badge-${p.status}">${statusIcon(p.status)} ${statusLabel(p.status)}</span>
         </div>
