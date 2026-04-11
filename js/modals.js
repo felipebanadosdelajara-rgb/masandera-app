@@ -31,19 +31,56 @@ function renderModal() {
 
       <div class="modal-section">
         <div class="modal-section-title">Productos</div>
-        ${p.items.map(item => {
-          const prod = getProducto(item.pId);
-          return `<div class="modal-item-row">
-            <div>
-              <div style="font-weight:600">${prod?prod.nombre:'?'}</div>
-              <div style="font-size:12px;color:var(--text-light)">${item.qty} ${prod?prod.unidad:''}</div>
-            </div>
-            <div style="font-weight:700">${fmt(item.qty*item.price)}</div>
-          </div>`;
-        }).join('')}
-        <div class="modal-total-row">
-          <span>Total pedido</span>
-          <span class="total-num">${fmt(p.total)}</span>
+        <div style="display:grid;grid-template-columns:1fr auto auto auto${isGerente?' auto':''};gap:0 16px;align-items:center;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border-light)">
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-light)">Producto</span>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-light);text-align:right">P. Unit. Neto</span>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-light);text-align:right">Cant.</span>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-light);text-align:right">Neto</span>
+          ${isGerente ? `<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-light);text-align:center">Stock</span>` : ''}
+        </div>
+        ${(() => {
+          const invItems = isGerente ? getInventarioVigente() : {};
+          return p.items.map(item => {
+            const prod = getProducto(item.pId);
+            const neto = item.qty * item.price;
+            let semaforo = '';
+            if (isGerente) {
+              const stock = invItems[item.pId];
+              if (stock === undefined) {
+                semaforo = `<div style="text-align:center;font-size:11px;color:var(--text-light)" title="Sin datos de inventario">—</div>`;
+              } else if (stock >= item.qty) {
+                semaforo = `<div style="text-align:center" title="Stock: ${stock} · Pedido: ${item.qty}"><span style="display:inline-block;background:#22c55e;color:white;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:700">${stock}</span></div>`;
+              } else if (stock > 0) {
+                semaforo = `<div style="text-align:center" title="Stock: ${stock} · Pedido: ${item.qty}"><span style="display:inline-block;background:#f59e0b;color:white;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:700">${stock}</span></div>`;
+              } else {
+                semaforo = `<div style="text-align:center" title="Stock: 0 · Pedido: ${item.qty}"><span style="display:inline-block;background:#ef4444;color:white;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:700">0</span></div>`;
+              }
+            }
+            return `<div style="display:grid;grid-template-columns:1fr auto auto auto${isGerente?' auto':''};gap:4px 16px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-light)">
+              <div>
+                <div style="font-weight:600;font-size:13px">${prod?prod.nombre:'?'}</div>
+                <div style="font-size:11px;color:var(--text-light)">${prod?prod.unidad:''}</div>
+              </div>
+              <div style="text-align:right;font-size:13px;color:var(--text-mid)">${fmt(item.price)}</div>
+              <div style="text-align:right;font-size:13px;font-weight:600">${item.qty}</div>
+              <div style="text-align:right;font-weight:700;font-size:13px">${fmt(neto)}</div>
+              ${isGerente ? semaforo : ''}
+            </div>`;
+          }).join('');
+        })()}
+        <div style="margin-top:10px;padding:10px 0;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;font-size:13px">
+            <span style="color:var(--text-mid)">Neto</span>
+            <span style="font-weight:600">${fmt(p.total)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px">
+            <span style="color:var(--text-mid)">IVA 19%</span>
+            <span style="font-weight:600">${fmt(Math.round(p.total * 0.19))}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:2px solid var(--border)">
+            <span style="font-weight:700">Total c/IVA</span>
+            <span style="font-family:var(--font-display);font-size:22px;color:var(--primary);font-weight:700">${fmt(Math.round(p.total * 1.19))}</span>
+          </div>
         </div>
       </div>
 
@@ -64,12 +101,10 @@ function renderModal() {
       : isGerente && p.status === 'aprobado' ? `
       <div class="modal-actions">
         <button class="btn btn-produccion" onclick="closeModal();marcarEnProduccion('${p.id}')">${icon('gear')} En Producción</button>
-        <button class="btn btn-facturar" onclick="closeModal();marcarFacturado('${p.id}')">${icon('receipt')} Facturar</button>
         <button class="btn btn-ghost" onclick="closeModal()">Cerrar</button>
       </div>`
       : isGerente && p.status === 'en_produccion' ? `
       <div class="modal-actions">
-        <button class="btn btn-facturar" onclick="closeModal();marcarFacturado('${p.id}')">${icon('receipt')} Facturar</button>
         <button class="btn btn-ghost" onclick="closeModal()">Cerrar</button>
       </div>` : `
       <div class="modal-actions">
@@ -110,7 +145,7 @@ function renderEditModal() {
         <button class="modal-close" onclick="cancelEdit()">${icon('x')}</button>
       </div>
 
-      <div style="max-height:50vh;overflow-y:auto;padding-right:4px">
+      <div style="max-height:50vh;overflow-y:auto;padding:16px 28px 0 28px">
         ${tipos.map(tipo => {
           const prods = productos.filter(x => x.tipo === tipo);
           return `
@@ -136,7 +171,7 @@ function renderEditModal() {
         }).join('')}
       </div>
 
-      <div style="border-top:2px solid var(--text);padding:14px 0;display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+      <div style="border-top:2px solid var(--text);padding:14px 28px;display:flex;justify-content:space-between;align-items:center;margin-top:8px">
         <span style="font-weight:700">Nuevo total del pedido</span>
         <span style="font-family:var(--font-display);font-size:22px;color:var(--primary)">${fmt(editTotal)}</span>
       </div>
