@@ -5,7 +5,7 @@
 // entre sesiones del navegador.
 // ============================================================
 
-const STORAGE_KEY = 'masandera_v2';
+const STORAGE_KEY = 'masandera_v3';
 
 /**
  * Guarda el estado actual en localStorage.
@@ -14,13 +14,14 @@ const STORAGE_KEY = 'masandera_v2';
 function saveStorage() {
   try {
     const snapshot = {
-      v: 1,
+      v: 2,
       pedidos: PEDIDOS,
       usuarios: DATA.usuarios,
       clientes: DATA.clientes,
       productos: DATA.productos,
       precios: DATA.precios,
       auditLog: AUDIT_LOG.slice(0, 100), // guardar últimas 100 entradas
+      inventario: INVENTARIO,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
   } catch (e) {
@@ -40,7 +41,7 @@ function loadStorage() {
     if (!raw) return false;
 
     const snap = JSON.parse(raw);
-    if (!snap || snap.v !== 1) {
+    if (!snap || snap.v !== 2) {
       // Versión incompatible — limpiar y empezar desde cero
       clearStorage();
       return false;
@@ -80,6 +81,12 @@ function loadStorage() {
     if (Array.isArray(snap.auditLog)) {
       AUDIT_LOG.length = 0;
       snap.auditLog.forEach(entry => AUDIT_LOG.push(entry));
+    }
+
+    // Restaurar inventario diario
+    if (Array.isArray(snap.inventario)) {
+      INVENTARIO.length = 0;
+      snap.inventario.forEach(inv => INVENTARIO.push(inv));
     }
 
     return true;
