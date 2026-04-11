@@ -121,13 +121,25 @@ function renderFacturacion(facturadosAll) {
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-light);margin-bottom:12px">Pendientes de facturar</div>
     ${porFacturar.length === 0
       ? `<div class="empty-state" style="padding:24px 0"><div class="empty-state-icon">${ICON.checkCircle}</div><h3>Sin pendientes</h3><p>Todos los pedidos aprobados han sido facturados.</p></div>`
-      : `<div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow-x:auto">
-        <table class="fact-table">
+      : `<div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow)">
+        <table class="fact-table" style="table-layout:fixed;width:100%">
+          <colgroup>
+            <col style="width:90px">
+            <col>
+            <col style="width:95px">
+            <col style="width:45px">
+            <col style="width:95px">
+            <col style="width:105px">
+            <col style="width:60px">
+          </colgroup>
           <thead><tr>
-            <th>Pedido</th><th>Cliente / Razón Social</th><th>RUT</th>
-            <th>Despacho</th><th>Días</th>
-            <th style="text-align:right">Neto</th><th style="text-align:right">IVA</th><th style="text-align:right">Total c/IVA</th>
-            <th>Folio DTE</th><th></th>
+            <th>Pedido</th>
+            <th>Cliente / RUT</th>
+            <th>Despacho</th>
+            <th style="text-align:center">Días</th>
+            <th style="text-align:right">Neto</th>
+            <th style="text-align:right">Total c/IVA</th>
+            <th></th>
           </tr></thead>
           <tbody>${porFacturar.map(p => {
             const c = getCliente(p.clienteId);
@@ -135,21 +147,18 @@ function renderFacturacion(facturadosAll) {
             const dias = Math.max(0, Math.floor((today - new Date(p.fechaDespacho)) / 86400000));
             const diasColor = dias > 5 ? 'var(--status-rejected)' : dias > 2 ? 'var(--status-pending)' : 'var(--status-approved)';
             return `<tr>
-              <td style="font-weight:600">${p.id}</td>
+              <td style="font-weight:600;font-size:12px">${p.id}</td>
               <td>
-                <div style="font-weight:600">${c?.nombre||'?'}</div>
-                <div style="font-size:11px;color:var(--text-light)">${c?.razonSocial||'<span style="color:var(--status-rejected)">Sin razón social</span>'}</div>
+                <div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c?.nombre||'?'}</div>
+                <div style="font-size:10px;font-family:monospace;color:var(--text-light)">${c?.rut || '<span style="color:var(--status-rejected)">Sin RUT</span>'}</div>
               </td>
-              <td style="font-family:monospace;font-size:12px">${c?.rut || `<span style="color:var(--status-rejected);font-weight:700">Sin RUT</span>`}</td>
-              <td>${fmtDate(p.fechaDespacho)}</td>
-              <td style="font-weight:700;color:${diasColor}">${dias}d</td>
-              <td style="text-align:right">${fmt(p.total)}</td>
-              <td style="text-align:right;color:var(--text-light)">${fmt(iva)}</td>
-              <td style="text-align:right;font-weight:700">${fmt(p.total + iva)}</td>
-              <td><input class="form-input" type="text" style="width:90px;padding:4px 8px;font-size:12px;font-family:monospace"
-                placeholder="Folio" value="${p.folio||''}"
-                onchange="PEDIDOS.find(x=>x.id==='${p.id}').folio=this.value"></td>
-              <td><button class="btn btn-success btn-sm" onclick="marcarFacturado('${p.id}')">${icon('receipt')} Facturar</button></td>
+              <td style="font-size:12px">${fmtDate(p.fechaDespacho)}</td>
+              <td style="font-weight:700;color:${diasColor};text-align:center">${dias}d</td>
+              <td style="text-align:right;font-size:13px">${fmt(p.total)}</td>
+              <td style="text-align:right;font-weight:700;font-size:13px">${fmt(p.total + iva)}</td>
+              <td style="text-align:center">
+                <button class="btn btn-ghost btn-sm" style="padding:4px 8px" onclick="openModal('${p.id}')" title="Ver detalle">${icon('search')}</button>
+              </td>
             </tr>`;
           }).join('')}</tbody>
         </table>
