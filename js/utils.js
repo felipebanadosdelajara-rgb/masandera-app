@@ -73,6 +73,23 @@ function statusIcon(s) {
   return map[s] || '';
 }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
+/**
+ * Retorna el registro de inventario para una fecha dada, o null si no existe.
+ */
+function getInventarioPorFecha(fecha) {
+  return INVENTARIO.find(inv => inv.fecha === fecha) || null;
+}
+
+/**
+ * Retorna { pId: qty } del inventario de la fecha más reciente anterior o igual a hoy.
+ * Se usa como semáforo: comparar unidades disponibles vs pedidas.
+ */
+function getInventarioVigente() {
+  const hoy = todayStr();
+  const sorted = [...INVENTARIO].filter(inv => inv.fecha <= hoy).sort((a,b) => b.fecha.localeCompare(a.fecha));
+  return sorted.length ? sorted[0].items : {};
+}
+
 function getNextDespachos() {
   // Returns next 6 dispatch dates: Lun-Vie + Sáb (viernes cubre sáb y lunes)
   const today = new Date();
