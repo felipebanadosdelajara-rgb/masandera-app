@@ -351,38 +351,58 @@ function renderHistorial() {
 
   ${!todos.length
     ? `<div class="empty-state"><div class="empty-state-icon">${ICON.search}</div><h3>Sin resultados</h3><p>Ajusta los filtros para encontrar pedidos.</p></div>`
-    : `<div class="order-list">
-    ${todos.map(p => {
+    : `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);overflow:hidden">
+    ${todos.map((p, idx) => {
       const cliente = getCliente(p.clienteId);
       const sc = p.subClienteId ? cliente?.subClientes?.find(s => s.id === p.subClienteId) : null;
       const nombreCliente = sc ? `${cliente?.nombre||'?'} → ${sc.nombre}` : (cliente?.nombre||'?');
-      const items = p.items.map(i => {
+      const borderTop = idx > 0 ? 'border-top:1px solid var(--border-light);' : '';
+
+      const itemsDetalle = p.items.map(i => {
         const prod = getProducto(i.pId);
-        return `<span class="item-pill">${prod?prod.nombre.split(' ').slice(0,2).join(' '):'?'} ×${i.qty}</span>`;
+        return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--border-light)">
+          <span>${prod?.nombre||'?'} <span style="color:var(--text-light);font-size:11px">${prod?.unidad||''}</span></span>
+          <span style="font-weight:600">${i.qty} × ${fmt(i.price)} = ${fmt(i.qty*i.price)}</span>
+        </div>`;
       }).join('');
-      const puedeFacturar = ['aprobado','en_produccion'].includes(p.status);
-      return `<div class="order-card status-${p.status}">
-        <div class="order-card-header" onclick="openModal('${p.id}')" style="cursor:pointer">
-          <div class="order-card-meta">
-            <span class="order-id">${p.id}</span>
-            <span class="order-client">${nombreCliente}</span>
-            <span class="order-date">Pedido: ${fmtDate(p.fechaPedido)}</span>
+
+      return `
+      <details style="${borderTop}">
+        <summary style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;list-style:none;user-select:none;hover:background:var(--surface2)">
+          <span style="font-family:monospace;font-size:11px;color:var(--text-light);white-space:nowrap;width:88px">${p.id}</span>
+          <span style="font-weight:600;font-size:13px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(nombreCliente)}</span>
+          <span style="font-size:12px;color:var(--text-mid);white-space:nowrap">${fmtDate(p.fechaPedido)}</span>
+          <span style="font-size:12px;color:var(--text-mid);white-space:nowrap">${icon('truck')} ${fmtDate(p.fechaDespacho)}</span>
+          <span style="font-weight:700;font-size:13px;white-space:nowrap;min-width:80px;text-align:right">${fmt(p.total)}</span>
+          <span class="status-badge badge-${p.status}" style="white-space:nowrap">${statusIcon(p.status)} ${statusLabel(p.status)}</span>
+        </summary>
+        <div style="padding:14px 16px;background:var(--surface2);border-top:1px solid var(--border-light);display:grid;grid-template-columns:1fr 1fr;gap:16px 24px">
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-light);margin-bottom:6px">Productos</div>
+            ${itemsDetalle}
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">
+              <span style="color:var(--text-mid)">Neto</span><span style="font-weight:600">${fmt(p.total)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px">
+              <span style="color:var(--text-mid)">IVA 19%</span><span style="font-weight:600">${fmt(Math.round(p.total*0.19))}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px;font-weight:700">
+              <span>Total c/IVA</span><span style="color:var(--primary)">${fmt(Math.round(p.total*1.19))}</span>
+            </div>
           </div>
-          <span class="status-badge badge-${p.status}">${statusIcon(p.status)} ${statusLabel(p.status)}</span>
-        </div>
-        <div class="order-items-preview">${items}</div>
-        <div class="order-card-footer">
-          <div class="order-total">${fmt(p.total)}</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <div class="dispatch-info">${icon('truck')} ${fmtDate(p.fechaDespacho)}</div>
-            ${p.status==='facturado' ? `<span style="font-size:13px;color:var(--text-light)">Fact: ${fmtDate(p.fechaFacturacion)}</span>` : ''}
-            ${p.status === 'aprobado' ? `<button class="btn btn-sm btn-produccion"
-              onclick="event.stopPropagation();marcarEnProduccion('${p.id}')">${icon('gear')} En Producción</button>` : ''}
-            ${puedeFacturar ? `<button class="btn btn-sm btn-facturar"
-              onclick="event.stopPropagation();marcarFacturado('${p.id}')">${icon('receipt')} Facturar</button>` : ''}
+          <div style="font-size:12px;display:flex;flex-direction:column;gap:5px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-light);margin-bottom:2px">Información</div>
+            <div><span style="color:var(--text-mid)">Cliente:</span> <strong>${escapeHtml(nombreCliente)}</strong></div>
+            <div><span style="color:var(--text-mid)">Ciudad:</span> ${escapeHtml(cliente?.ciudad||'—')}</div>
+            <div><span style="color:var(--text-mid)">Pedido:</span> ${fmtDate(p.fechaPedido)}</div>
+            <div><span style="color:var(--text-mid)">Despacho:</span> ${fmtDate(p.fechaDespacho)}</div>
+            ${p.fechaFacturacion ? `<div><span style="color:var(--text-mid)">Facturado:</span> ${fmtDate(p.fechaFacturacion)}</div>` : ''}
+            ${p.folio ? `<div><span style="color:var(--text-mid)">Folio DTE:</span> <code style="font-size:11px">${escapeHtml(p.folio)}</code></div>` : ''}
+            ${p.obs ? `<div style="margin-top:6px;padding:8px;background:var(--surface);border-radius:6px">${icon('info')} ${escapeHtml(p.obs)}</div>` : ''}
+            ${p.obsGerente ? `<div style="margin-top:4px;padding:8px;background:var(--status-approved-bg);border-radius:6px;color:var(--secondary)">${icon('checkCircle')} ${escapeHtml(p.obsGerente)}</div>` : ''}
           </div>
         </div>
-      </div>`;
+      </details>`;
     }).join('')}
   </div>`}`;
 }
