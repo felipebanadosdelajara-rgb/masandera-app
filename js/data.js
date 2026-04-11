@@ -186,6 +186,8 @@ const DATA = {
 };
 
 // Pedidos iniciales de demostración
+let INVENTARIO = []; // { id, fecha, items:{pId:qty}, creadoPor, ts }
+
 let PEDIDOS = [
   {
     id:'ORD-001', clienteId:'c1',
