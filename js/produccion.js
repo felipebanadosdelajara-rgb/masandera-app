@@ -8,7 +8,7 @@ function renderProduccion() {
   return `
   <div class="page-header">
     <h2>Plan de Producción</h2>
-    <p>Producción consolidada por SKU · Empaque por despacho y cliente.</p>
+    ${sub !== 2 ? `<p>Producción consolidada por SKU · Empaque por despacho y cliente.</p>` : ''}
   </div>
 
   <div class="tabs" style="margin-bottom:24px">
@@ -18,9 +18,12 @@ function renderProduccion() {
     <button class="tab-btn ${sub===1?'active':''}" onclick="STATE.prodSubTab=1;render()">
       ${icon('package')} Empaque
     </button>
+    <button class="tab-btn ${sub===2?'active':''}" onclick="STATE.prodSubTab=2;render()">
+      ${icon('clipboardList')} Inventario
+    </button>
   </div>
 
-  ${sub === 0 ? renderProduccionSub(activos) : renderEmpaqueSub(activos)}`;
+  ${sub === 0 ? renderProduccionSub(activos) : sub === 1 ? renderEmpaqueSub(activos) : renderInventarioSub()}`;
 }
 
 // ─── SUB-TAB: PRODUCCIÓN ─────────────────────────────────────
@@ -549,3 +552,127 @@ function _pdfFooter(doc) {
 
 // ─── Legacy aliases ────────────────────────────────────────────
 function generarPDFProduccion(fecha) { generarPDFProduccionV2(); }
+
+// ============================================================
+// SUB-TAB: INVENTARIO DIARIO
+// ============================================================
+function renderInventarioSub() {
+  const productos = DATA.productos.filter(p => p.activo);
+  const tipos = [...new Set(productos.map(p => p.tipo))];
+
+  // Inicializar fecha si está vacía
+  if (!STATE.inventarioFecha) STATE.inventarioFecha = todayStr();
+
+  const fechaActual = STATE.inventarioFecha;
+  const registroExistente = getInventarioPorFecha(fechaActual);
+
+  // Pre-cargar draft con registro existente si el draft está vacío y existe registro
+  if (registroExistente && Object.keys(STATE.inventarioDraft).length === 0) {
+    Object.assign(STATE.inventarioDraft, registroExistente.items);
+  }
+
+  // Historial de inventarios (solo lectura), más recientes primero
+  const historial = [...INVENTARIO].sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  return `
+  <!-- BARRA SUPERIOR: fecha + acciones (una sola fila) -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 14px">
+    <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mid);white-space:nowrap">Fecha</label>
+    <input class="form-input" type="date" value="${fechaActual}"
+      onchange="setInventarioFecha(this.value)" style="width:155px;padding:4px 8px;font-size:13px">
+    ${registroExistente
+      ? `<span style="font-size:11px;color:var(--status-approved);font-weight:600;white-space:nowrap">${icon('check')} Editando registro</span>`
+      : `<span style="font-size:11px;color:var(--text-light);white-space:nowrap">Nuevo registro</span>`}
+    <button class="btn btn-ghost btn-sm" onclick="limpiarInventarioDraft()" style="margin-left:auto">${icon('x')} Limpiar</button>
+    <button class="btn btn-primary btn-sm" onclick="guardarInventario()">${icon('check')} Guardar</button>
+  </div>
+
+  <!-- GRID DE PRODUCTOS (plano, sin separadores por tipo) -->
+  <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:4px">
+    ${productos.map(prod => {
+      const qty = STATE.inventarioDraft[prod.id] !== undefined ? STATE.inventarioDraft[prod.id] : '';
+      return `<div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border-radius:5px;padding:5px 8px;border-left:2px solid ${prod.categoria==='brioche'?'#d97706':'var(--primary-light-border,#c49a6c)'}">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escapeHtml(prod.nombre)}">${escapeHtml(prod.nombre)}</div>
+          <div style="font-size:9px;color:var(--text-light)">${prod.tipo}</div>
+        </div>
+        <input type="number" min="0" value="${qty}" placeholder="0"
+          style="width:50px;text-align:right;padding:2px 4px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:white"
+          oninput="inventarioDraftSet('${prod.id}',this.value)">
+      </div>`;
+    }).join('')}
+  </div>
+
+  <!-- HISTORIAL (colapsable, solo lectura) -->
+  <details style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);overflow:hidden">
+    <summary style="padding:10px 16px;background:var(--surface2);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mid);cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px">
+      ${icon('clock')} Historial de registros
+      <span style="margin-left:auto;font-size:10px;color:var(--text-light);font-weight:400">${historial.length} registro${historial.length!==1?'s':''} — clic para ver</span>
+    </summary>
+    ${historial.length === 0 ? `<div style="padding:20px;text-align:center;color:var(--text-light);font-size:13px">Sin registros previos.</div>` : `
+    <div style="overflow-x:auto">
+      <table class="fact-table" style="font-size:12px">
+        <thead><tr>
+          <th style="width:110px">Fecha</th>
+          ${productos.filter(p => historial.some(inv => inv.items[p.id] > 0))
+            .map(p => `<th style="text-align:right;white-space:nowrap">${escapeHtml(p.nombre)}</th>`).join('')}
+          <th style="text-align:right">Total</th>
+        </tr></thead>
+        <tbody>
+          ${historial.map(inv => {
+            const activeProd = productos.filter(p => historial.some(i => i.items[p.id] > 0));
+            const total = Object.values(inv.items).reduce((s,v) => s + (v||0), 0);
+            return `<tr>
+              <td style="font-weight:600;white-space:nowrap">${fmtDate(inv.fecha)}</td>
+              ${activeProd.map(p => {
+                const q = inv.items[p.id] || 0;
+                return `<td style="text-align:right;color:${q>0?'var(--text)':'var(--text-light)'}">${q > 0 ? q : '—'}</td>`;
+              }).join('')}
+              <td style="text-align:right;font-weight:700">${total}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`}
+  </details>
+`;
+}
+
+function setInventarioFecha(fecha) {
+  STATE.inventarioFecha = fecha;
+  STATE.inventarioDraft = {};
+  // Si hay registro para esa fecha, pre-cargar
+  const reg = getInventarioPorFecha(fecha);
+  if (reg) Object.assign(STATE.inventarioDraft, { ...reg.items });
+  render();
+}
+
+function inventarioDraftSet(pId, val) {
+  const n = parseInt(val, 10);
+  if (!isNaN(n) && n >= 0) STATE.inventarioDraft[pId] = n;
+  else delete STATE.inventarioDraft[pId];
+}
+
+function limpiarInventarioDraft() {
+  STATE.inventarioDraft = {};
+  render();
+}
+
+function guardarInventario() {
+  const fecha = STATE.inventarioFecha || todayStr();
+  const items = { ...STATE.inventarioDraft };
+  const idx = INVENTARIO.findIndex(inv => inv.fecha === fecha);
+  const registro = {
+    id: 'INV-' + fecha,
+    fecha,
+    items,
+    creadoPor: STATE.user?.email || '?',
+    ts: new Date().toISOString(),
+  };
+  if (idx >= 0) INVENTARIO[idx] = registro;
+  else INVENTARIO.push(registro);
+  STATE.inventarioDraft = {};
+  saveStorage();
+  showNotif('success', 'Inventario guardado para ' + fmtDate(fecha));
+  render();
+}
