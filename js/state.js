@@ -43,7 +43,9 @@ let STATE = {
   editingProductId: null,      // producto: id en edición (null = nuevo)
   productFilter: 'all',        // producto: filtro tipo
   productCatFilter: 'all',     // producto: filtro categoría
-  prodSubTab: 0,               // 0=Producción 1=Empaque
+  prodSubTab: 0,               // 0=Producción 1=Empaque 2=Inventario
+  inventarioFecha: '',         // fecha seleccionada para ingreso de inventario
+  inventarioDraft: {},         // { pId: qty } — inventario en edición
 
   // ── Gestión de clientes ────────────────────────────────────
   clientMgmt: {
