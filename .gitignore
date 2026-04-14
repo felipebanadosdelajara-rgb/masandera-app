@@ -1,0 +1,6 @@
+.claude/
+*.xlsx
+*.pdf
+*.docx
+*.py
+*.bat
