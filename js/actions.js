@@ -13,62 +13,31 @@ function bindEvents() {
   }
 }
 
-function doLogin(email, pass) {
-  // Rate limiting check
-  const attempts = checkLoginAttempts(email);
-  if (!attempts.allowed) {
-    STATE.loginError = `Demasiados intentos. Intenta en ${attempts.minutesLeft} minuto(s).`;
-    STATE.loginEmail = email;
-    render();
-    return;
-  }
-
-  const user = DATA.usuarios.find(u => u.email.toLowerCase() === email.toLowerCase() && u.pass === simpleHash(pass));
-  if (!user) {
-    recordLoginAttempt(email, false);
-    const remaining = checkLoginAttempts(email).remaining;
-    STATE.loginError = remaining > 0
-      ? `Correo o contraseña incorrectos. ${remaining} intento(s) restante(s).`
-      : `Demasiados intentos. Intenta en ${LOCKOUT_MINUTES} minutos.`;
-    STATE.loginEmail = email;
-    render();
-    return;
-  }
-
-  // Check if user is active
-  if (user.activo === false) {
-    STATE.loginError = 'Tu cuenta ha sido desactivada. Contacta al administrador.';
-    STATE.loginEmail = email;
-    render();
-    return;
-  }
-
-  recordLoginAttempt(email, true);
-  saveSession(user);
-  logAction('login', { email: user.email });
-
-  STATE.user = user;
-  STATE.page = user.rol;
-  STATE.tab = 0;
+async function doLogin(email, pass) {
+  STATE.loginEmail = email;
   STATE.loginError = '';
-  render();
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+    // El listener onAuthStateChanged en app.js completa el flujo (completeLogin).
+  } catch (err) {
+    let msg = 'Correo o contraseña incorrectos.';
+    if (err.code === 'auth/too-many-requests') msg = 'Demasiados intentos. Intenta en unos minutos.';
+    else if (err.code === 'auth/network-request-failed') msg = 'Sin conexión. Verifica tu internet.';
+    else if (err.code === 'auth/invalid-email') msg = 'El correo no tiene un formato válido.';
+    else if (err.code === 'auth/user-disabled') msg = 'Tu cuenta ha sido desactivada. Contacta al administrador.';
+    STATE.loginError = msg;
+    render();
+  }
 }
 
 function quickLogin(email, pass) {
   doLogin(email, pass);
 }
 
-function doLogout() {
+async function doLogout() {
   logAction('logout', { email: STATE.user?.email });
-  clearSession();
-  STATE.user = null;
-  STATE.page = 'login';
-  STATE.tab = 0;
-  STATE.draft = {};
-  STATE.draftFecha = '';
-  STATE.draftObs = '';
-  STATE.modal = null;
-  render();
+  try { await auth.signOut(); } catch (e) {}
+  // handleLogout (en render.js) limpia STATE cuando el listener detecta el signOut.
 }
 
 function setTab(i) {

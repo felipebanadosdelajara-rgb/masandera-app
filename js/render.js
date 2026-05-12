@@ -2,18 +2,46 @@
 // RENDER ENGINE
 // ============================================================
 
-// Restore session on page load
-function restoreSession() {
-  const session = getSession();
-  if (session) {
-    const user = DATA.usuarios.find(u => u.id === session.userId);
-    if (user && user.activo !== false) {
-      STATE.user = user;
-      STATE.page = user.rol;
-    } else {
-      clearSession();
-    }
+// Sesión ahora gestionada por Firebase Auth (onAuthStateChanged en app.js).
+// Esta función queda como no-op por compatibilidad con código antiguo.
+function restoreSession() {}
+
+// Llamado desde el listener de Firebase Auth cuando un usuario se autentica.
+function completeLogin(firebaseUser) {
+  const user = DATA.usuarios.find(u => u.email.toLowerCase() === firebaseUser.email.toLowerCase());
+  if (!user) {
+    STATE.loginError = 'Tu cuenta no está configurada en la aplicación. Contacta al administrador.';
+    auth.signOut();
+    render();
+    return;
   }
+  if (user.activo === false) {
+    STATE.loginError = 'Tu cuenta ha sido desactivada. Contacta al administrador.';
+    auth.signOut();
+    render();
+    return;
+  }
+  saveSession(user);
+  logAction('login', { email: user.email });
+  STATE.user = user;
+  STATE.page = user.rol;
+  STATE.tab = 0;
+  STATE.loginError = '';
+  render();
+}
+
+// Llamado desde el listener de Firebase Auth cuando el usuario cierra sesión.
+function handleLogout() {
+  if (!STATE.user) return;
+  clearSession();
+  STATE.user = null;
+  STATE.page = 'login';
+  STATE.tab = 0;
+  STATE.draft = {};
+  STATE.draftFecha = '';
+  STATE.draftObs = '';
+  STATE.modal = null;
+  render();
 }
 
 // Destroy existing Chart.js instances before re-render

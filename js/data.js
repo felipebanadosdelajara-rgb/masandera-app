@@ -82,6 +82,15 @@ const DATA = {
       productosAsignados:['p1','p2','p3','p13','p15','p17','p19','p28','p30','p31'],
       activo:true
     },
+    {
+      id:'c_lamadre', nombre:'La Madre',
+      razonSocial:'', rut:'',
+      tipo:'final', rubro:'Restaurant', giro:'',
+      contacto:'Josefa De la Cuadra', telefono:'',
+      direccion:'', ciudad:'Santiago',
+      productosAsignados:[],
+      activo:true
+    },
   ],
 
   // Precios del cliente demo (usa precio de lista)
@@ -98,6 +107,9 @@ const DATA = {
     { id:'u2', nombre:'Producción Demo', email:'produccion@masandera.cl', pass:simpleHash('prod'), rol:'produccion', activo:true },
     { id:'u3', nombre:'Cliente Demo', email:'cliente@demo.cl', pass:simpleHash('pass'), rol:'cliente', clienteId:'c1', activo:true },
     { id:'u4', nombre:'Facturación Demo', email:'facturacion@masandera.cl', pass:simpleHash('fact'), rol:'facturacion', activo:true },
+    // Cuentas reales del piloto — passwords gestionadas por Firebase Auth (pass:null)
+    { id:'u_rodrigo', nombre:'Rodrigo Alfaro', email:'rodrigo.alfaro.p@gmail.com', pass:null, rol:'gerente', activo:true },
+    { id:'u_lamadre', nombre:'La Madre', email:'delacuadrajosefa@gmail.com', pass:null, rol:'cliente', clienteId:'c_lamadre', activo:true },
   ],
 };
 
