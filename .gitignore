@@ -4,3 +4,10 @@
 *.docx
 *.py
 *.bat
+
+# Service accounts y credenciales — NUNCA subir a GitHub
+*firebase-adminsdk*.json
+firebase-admin-key.json
+serviceAccountKey*.json
+*.pem
+*.key

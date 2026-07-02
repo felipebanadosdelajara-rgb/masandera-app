@@ -91,6 +91,31 @@ const DATA = {
       productosAsignados:[],
       activo:true
     },
+    // Perfiles de prueba del login (distribuidor y cliente final)
+    {
+      id:'c_demo_dist', nombre:'La Madre Distribución (Demo)',
+      razonSocial:'Distribuidora Demo Ltda.', rut:'77.111.111-1',
+      tipo:'distribuidor', rubro:'Distribución', giro:'Distribución de alimentos',
+      contacto:'María Demo', telefono:'+56 9 1111 1111',
+      direccion:'Av. Demo 200', ciudad:'Santiago',
+      productosAsignados:['p1','p2','p3','p13','p15','p17','p19','p28','p30','p31'],
+      subClientes:[
+        { id:'sc-demo1', nombre:'Café Central', razonSocial:'', rut:'', rubro:'Café', giro:'',
+          contacto:'', direccion:'', ciudad:'Santiago', productosAsignados:['p1','p2','p13','p15'] },
+        { id:'sc-demo2', nombre:'Sanguchería El Barrio', razonSocial:'', rut:'', rubro:'Sanguchería', giro:'',
+          contacto:'', direccion:'', ciudad:'Santiago', productosAsignados:['p17','p28','p30','p31'] },
+      ],
+      activo:true
+    },
+    {
+      id:'c_demo_final', nombre:'El Patio (Demo)',
+      razonSocial:'El Patio Demo SpA', rut:'77.222.222-2',
+      tipo:'final', rubro:'Restaurant', giro:'Venta de alimentos',
+      contacto:'Pedro Demo', telefono:'+56 9 2222 2222',
+      direccion:'Calle Demo 300', ciudad:'Santiago',
+      productosAsignados:['p1','p2','p13','p17','p19'],
+      activo:true
+    },
   ],
 
   // Precios del cliente demo (usa precio de lista)
@@ -100,6 +125,15 @@ const DATA = {
     {cId:'c1',pId:'p17',v:400},{cId:'c1',pId:'p19',v:180},
     {cId:'c1',pId:'p28',v:490},
     {cId:'c1',pId:'p30',v:350},{cId:'c1',pId:'p31',v:360},
+    // Distribuidor demo — precio mayorista (~10% bajo lista)
+    {cId:'c_demo_dist',pId:'p1',v:3500},{cId:'c_demo_dist',pId:'p2',v:3500},{cId:'c_demo_dist',pId:'p3',v:4100},
+    {cId:'c_demo_dist',pId:'p13',v:800},{cId:'c_demo_dist',pId:'p15',v:1600},
+    {cId:'c_demo_dist',pId:'p17',v:360},{cId:'c_demo_dist',pId:'p19',v:160},
+    {cId:'c_demo_dist',pId:'p28',v:440},
+    {cId:'c_demo_dist',pId:'p30',v:320},{cId:'c_demo_dist',pId:'p31',v:330},
+    // Cliente final demo — precio de lista
+    {cId:'c_demo_final',pId:'p1',v:3900},{cId:'c_demo_final',pId:'p2',v:3900},
+    {cId:'c_demo_final',pId:'p13',v:900},{cId:'c_demo_final',pId:'p17',v:400},{cId:'c_demo_final',pId:'p19',v:180},
   ],
 
   usuarios: [
@@ -107,6 +141,9 @@ const DATA = {
     { id:'u2', nombre:'Producción Demo', email:'produccion@masandera.cl', pass:simpleHash('prod'), rol:'produccion', activo:true },
     { id:'u3', nombre:'Cliente Demo', email:'cliente@demo.cl', pass:simpleHash('pass'), rol:'cliente', clienteId:'c1', activo:true },
     { id:'u4', nombre:'Facturación Demo', email:'facturacion@masandera.cl', pass:simpleHash('fact'), rol:'facturacion', activo:true },
+    // Perfiles de prueba del login — passwords gestionadas por Firebase Auth (pass:null)
+    { id:'u5', nombre:'La Madre Distribución (Demo)', email:'lamadre@cliente.cl', pass:null, rol:'cliente', clienteId:'c_demo_dist', activo:true },
+    { id:'u6', nombre:'El Patio (Demo)', email:'elpatio@cliente.cl', pass:null, rol:'cliente', clienteId:'c_demo_final', activo:true },
     // Cuentas reales del piloto — passwords gestionadas por Firebase Auth (pass:null)
     { id:'u_rodrigo', nombre:'Rodrigo Alfaro', email:'rodrigo.alfaro.p@gmail.com', pass:null, rol:'gerente', activo:true },
     { id:'u_lamadre', nombre:'La Madre', email:'delacuadrajosefa@gmail.com', pass:null, rol:'cliente', clienteId:'c_lamadre', activo:true },
@@ -126,3 +163,9 @@ let PEDIDOS = [
 ];
 
 PEDIDOS.forEach(p => { p.total = p.items.reduce((s,i) => s + i.qty*i.price, 0); });
+
+// SEED_PRODUCTOS: snapshot inmutable del catálogo inicial.
+// Se usa una sola vez si la colección /productos en Firestore está vacía
+// (ver firestore-sync.js → seedProductos). Capturado ANTES de loadStorage()
+// para evitar quedarse con un catálogo incompleto desde un snapshot viejo.
+const SEED_PRODUCTOS = JSON.parse(JSON.stringify(DATA.productos));

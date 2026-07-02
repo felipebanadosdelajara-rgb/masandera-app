@@ -98,25 +98,25 @@ function renderLogin() {
 
       <div class="demo-creds">
         <h4>Accesos de demostración — clic para ingresar</h4>
-        <div class="demo-cred-item" onclick="quickLogin('admin@masandera.cl','admin')">
+        <div class="demo-cred-item" onclick="quickLogin('admin@masandera.cl','admin123')">
           <div><div class="demo-cred-role">${icon('shield')} Gerente</div><div class="demo-cred-email">admin@masandera.cl</div></div>
-          <span class="demo-pass">admin</span>
+          <span class="demo-pass">admin123</span>
         </div>
-        <div class="demo-cred-item" onclick="quickLogin('produccion@masandera.cl','prod')">
+        <div class="demo-cred-item" onclick="quickLogin('produccion@masandera.cl','prod123')">
           <div><div class="demo-cred-role">${icon('gear')} Producción</div><div class="demo-cred-email">produccion@masandera.cl</div></div>
-          <span class="demo-pass">prod</span>
+          <span class="demo-pass">prod123</span>
         </div>
-        <div class="demo-cred-item" onclick="quickLogin('lamadre@cliente.cl','pass')">
+        <div class="demo-cred-item" onclick="quickLogin('lamadre@cliente.cl','pass123')">
           <div><div class="demo-cred-role">${icon('building')} La Madre (Distribuidor)</div><div class="demo-cred-email">lamadre@cliente.cl</div></div>
-          <span class="demo-pass">pass</span>
+          <span class="demo-pass">pass123</span>
         </div>
-        <div class="demo-cred-item" onclick="quickLogin('elpatio@cliente.cl','pass')">
+        <div class="demo-cred-item" onclick="quickLogin('elpatio@cliente.cl','pass123')">
           <div><div class="demo-cred-role">${icon('package')} El Patio (Cliente Final)</div><div class="demo-cred-email">elpatio@cliente.cl</div></div>
-          <span class="demo-pass">pass</span>
+          <span class="demo-pass">pass123</span>
         </div>
-        <div class="demo-cred-item" onclick="quickLogin('facturacion@masandera.cl','fact')">
+        <div class="demo-cred-item" onclick="quickLogin('facturacion@masandera.cl','fact123')">
           <div><div class="demo-cred-role">${icon('receipt')} Facturación</div><div class="demo-cred-email">facturacion@masandera.cl</div></div>
-          <span class="demo-pass">fact</span>
+          <span class="demo-pass">fact123</span>
         </div>
       </div>
     </div>
