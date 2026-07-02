@@ -64,7 +64,7 @@ function renderClientes() {
   ${cm.assigningProductsTo ? renderAsignacionProductos(cm.assigningProductsTo) : ''}
 
   ${!clientes.length
-    ? `<div class="empty-state"><span class="empty-icon">🏪</span><h3>Sin clientes</h3><p>Crea el primer cliente.</p></div>`
+    ? `<div class="empty-state"><div class="empty-state-icon">${ICON.store}</div><h3>Sin clientes</h3><p>Crea el primer cliente.</p></div>`
     : `<div class="dispatch-group">
         ${clientes.map(c => renderClienteRow(c, cm)).join('')}
       </div>`}`;
@@ -92,7 +92,7 @@ function renderClienteRow(c, cm) {
           <div style="font-weight:700;font-size:15px">
             ${escapeHtml(c.nombre)}
             <span class="status-badge ${c.tipo==='distribuidor'?'badge-aprobado':'badge-enviado'}" style="margin-left:6px;font-size:11px">
-              ${c.tipo === 'distribuidor' ? '🏢 Distribuidor' : '🏪 Final'}
+              ${c.tipo === 'distribuidor' ? `${icon('building','icon-xs')} Distribuidor` : `${icon('store','icon-xs')} Final`}
             </span>
             ${c.activo===false ? `<span class="status-badge badge-rechazado" style="margin-left:4px;font-size:10px">Inactivo</span>` : ''}
           </div>
@@ -114,8 +114,8 @@ function renderClienteRow(c, cm) {
           <div style="color:var(--text-light)">Facturado</div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm" onclick="abrirAsignacionProductos('client','${c.id}')">📦 Catálogo</button>
-          <button class="btn btn-ghost btn-sm" onclick="abrirFormCliente('${c.id}')">✏️ Editar</button>
+          <button class="btn btn-ghost btn-sm" onclick="abrirAsignacionProductos('client','${c.id}')">${icon('package','icon-xs')} Catálogo</button>
+          <button class="btn btn-ghost btn-sm" onclick="abrirFormCliente('${c.id}')">${icon('edit','icon-xs')} Editar</button>
           ${isDistribuidor ? `<button class="btn btn-ghost btn-sm" onclick="abrirFormSubCliente('${c.id}',null)">+ Sub-cliente</button>` : ''}
           ${c.activo!==false
             ? `<button class="btn btn-danger btn-sm" onclick="toggleClienteActivo('${c.id}',false)">Desactivar</button>`
@@ -157,9 +157,9 @@ function renderSubClienteRow(parentId, sc, cm) {
       </div>
     </div>
     <div style="display:flex;gap:6px">
-      <button class="btn btn-ghost btn-sm" onclick="abrirAsignacionProductos('subclient','${parentId}','${sc.id}')">📦</button>
-      <button class="btn btn-ghost btn-sm" onclick="abrirFormSubCliente('${parentId}','${sc.id}')">✏️</button>
-      <button class="btn btn-danger btn-sm" onclick="eliminarSubCliente('${parentId}','${sc.id}')">✕</button>
+      <button class="btn btn-ghost btn-sm" onclick="abrirAsignacionProductos('subclient','${parentId}','${sc.id}')">${icon('package','icon-xs')}</button>
+      <button class="btn btn-ghost btn-sm" onclick="abrirFormSubCliente('${parentId}','${sc.id}')">${icon('edit','icon-xs')}</button>
+      <button class="btn btn-danger btn-sm" onclick="eliminarSubCliente('${parentId}','${sc.id}')">${icon('x','icon-xs')}</button>
     </div>
   </div>`;
 }
@@ -182,8 +182,8 @@ function renderFormCliente(editingId) {
       <div class="form-group">
         <label class="form-label">Tipo de cliente *</label>
         <select class="form-select" id="cTipo">
-          <option value="final"        ${(!c||c.tipo==='final')?'selected':''}>🏪 Cliente Final</option>
-          <option value="distribuidor" ${c?.tipo==='distribuidor'?'selected':''}>🏢 Distribuidor</option>
+          <option value="final"        ${(!c||c.tipo==='final')?'selected':''}>Cliente Final</option>
+          <option value="distribuidor" ${c?.tipo==='distribuidor'?'selected':''}>Distribuidor</option>
         </select>
       </div>
       <div class="form-group">

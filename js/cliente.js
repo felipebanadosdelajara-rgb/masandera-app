@@ -91,7 +91,7 @@ function renderNuevoPedido() {
     const price = getPrecio(STATE.user.clienteId, p.id);
     const qty = STATE.draft[p.id] || 0;
     const bloqueado = isSkuBloqueado(p, fechaDespachoSel);
-    const catLabel = p.categoria==='pan_tradicional'?'🍞 Pan Tradicional':'🌾 Masa Madre';
+    const catLabel = p.categoria==='pan_tradicional' ? `${icon('bread','icon-xs')} Pan Tradicional` : `${icon('wheat','icon-xs')} Masa Madre`;
     // data-search y data-cat permiten filtrar el DOM sin re-render (evita perder foco)
     if (bloqueado) {
       const corteTexto = textoCorte(p, fechaDespachoSel);
@@ -191,7 +191,7 @@ function renderNuevoPedido() {
           ${STATE.catalogSearch ? `<button class="catalog-search-clear" onclick="filterCatalog('','${STATE.catalogCategory}')">✕</button>` : ''}
         </div>
         <div class="catalog-cat-btns">
-          ${[['all','Todos'],['masa_madre','🌾 Masa Madre'],['pan_tradicional','🍞 Pan Tradicional']].map(([v,l]) =>
+          ${[['all','Todos'],['masa_madre',`${icon('wheat','icon-xs')} Masa Madre`],['pan_tradicional',`${icon('bread','icon-xs')} Pan Tradicional`]].map(([v,l]) =>
             `<button class="catalog-cat-btn ${STATE.catalogCategory===v?'active':''}"
               data-cat="${v}" onclick="filterCatalog('${escapeHtml(STATE.catalogSearch)}','${v}')">${l}</button>`
           ).join('')}
@@ -222,7 +222,7 @@ function renderNuevoPedido() {
       </div>` : ''}
       ${draftItems.length === 0 ? `
         <div class="empty-summary">
-          <span class="empty-icon">🛒</span>
+          <div class="empty-state-icon">${ICON.shoppingCart}</div>
           <p>Agrega productos para ver el resumen</p>
         </div>` : `
         <div class="summary-items">
@@ -328,7 +328,7 @@ function renderMisPedidos(pedidos) {
           <div class="order-total">${fmt(p.total)}</div>
           <div style="display:flex;gap:10px;align-items:center">
             <div class="dispatch-info">${icon('truck')} Despacho: ${fmtDate(p.fechaDespacho)}</div>
-            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();repetirPedido('${p.id}')">🔄 Repetir</button>
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();repetirPedido('${p.id}')">${icon('refreshCw','icon-xs')} Repetir</button>
           </div>
         </div>
       </div>`;

@@ -471,7 +471,7 @@ function marcarEnProduccion(orderId) {
   p.status = 'en_produccion';
   logAction('order_in_production', { orderId });
   const clientUser = DATA.usuarios.find(u => u.clienteId === p.clienteId && u.rol === 'cliente');
-  if (clientUser) addNotification(clientUser.id, `Tu pedido ${orderId} está en producción. ⚙️`, 'info');
+  if (clientUser) addNotification(clientUser.id, `Tu pedido ${orderId} está en producción.`, 'info');
   showNotif('success', `Pedido ${orderId} marcado como En Producción.`);
 }
 

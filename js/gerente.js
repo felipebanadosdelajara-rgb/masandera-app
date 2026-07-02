@@ -141,7 +141,7 @@ function renderUsuarios() {
           ${u.id !== STATE.user.id ? (u.activo !== false
             ? (STATE.confirmAction?.id === u.id && STATE.confirmAction?.type === 'deactivate'
                 ? `<span class="confirm-inline-sm">
-                    ⚠️ ¿Desactivar?
+                    ${icon('alertTriangle','icon-xs')} ¿Desactivar?
                     <button class="btn btn-danger btn-sm" onclick="executeConfirmAction('${u.id}')">Sí</button>
                     <button class="btn btn-ghost btn-sm" onclick="cancelConfirmAction()">No</button>
                    </span>`

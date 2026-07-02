@@ -92,7 +92,7 @@ function renderLogin() {
           <label class="form-label">Contraseña</label>
           <input class="form-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
         </div>
-        ${STATE.loginError ? `<p style="color:var(--status-rejected);font-size:13px;margin-bottom:12px;">⚠️ ${STATE.loginError}</p>` : ''}
+        ${STATE.loginError ? `<p style="color:var(--status-rejected);font-size:13px;margin-bottom:12px;">${icon('alertTriangle','icon-xs')} ${STATE.loginError}</p>` : ''}
         <button type="submit" class="btn btn-primary btn-full">Ingresar</button>
       </form>
 
