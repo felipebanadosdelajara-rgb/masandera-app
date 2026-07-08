@@ -29,6 +29,8 @@ function saveStorage() {
     // localStorage lleno o no disponible (p.ej. modo privado restrictivo)
     console.warn('[Masandera] No se pudo guardar en localStorage:', e.message);
   }
+  // Subir a Firestore los documentos que cambiaron (diff en firestore-sync.js)
+  if (typeof pushFirestoreChanges === 'function') pushFirestoreChanges();
 }
 
 /**
