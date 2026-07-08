@@ -110,10 +110,6 @@ function renderLogin() {
           <div><div class="demo-cred-role">${icon('building')} La Madre (Distribuidor)</div><div class="demo-cred-email">lamadre@cliente.cl</div></div>
           <span class="demo-pass">pass123</span>
         </div>
-        <div class="demo-cred-item" onclick="quickLogin('elpatio@cliente.cl','pass123')">
-          <div><div class="demo-cred-role">${icon('package')} El Patio (Cliente Final)</div><div class="demo-cred-email">elpatio@cliente.cl</div></div>
-          <span class="demo-pass">pass123</span>
-        </div>
         <div class="demo-cred-item" onclick="quickLogin('facturacion@masandera.cl','fact123')">
           <div><div class="demo-cred-role">${icon('receipt')} Facturación</div><div class="demo-cred-email">facturacion@masandera.cl</div></div>
           <span class="demo-pass">fact123</span>

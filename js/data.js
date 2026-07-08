@@ -107,13 +107,14 @@ const DATA = {
       ],
       activo:true
     },
+    // Cliente real del piloto — Hornitos (negocio del grupo HR)
     {
-      id:'c_demo_final', nombre:'El Patio (Demo)',
-      razonSocial:'El Patio Demo SpA', rut:'77.222.222-2',
-      tipo:'final', rubro:'Restaurant', giro:'Venta de alimentos',
-      contacto:'Pedro Demo', telefono:'+56 9 2222 2222',
-      direccion:'Calle Demo 300', ciudad:'Santiago',
-      productosAsignados:['p1','p2','p13','p17','p19'],
+      id:'c_hornitos', nombre:'Los Hornitos de Curacaví',
+      razonSocial:'', rut:'',
+      tipo:'final', rubro:'Panadería', giro:'',
+      contacto:'', telefono:'',
+      direccion:'', ciudad:'Curacaví',
+      productosAsignados:[],
       activo:true
     },
   ],
@@ -131,9 +132,6 @@ const DATA = {
     {cId:'c_demo_dist',pId:'p17',v:360},{cId:'c_demo_dist',pId:'p19',v:160},
     {cId:'c_demo_dist',pId:'p28',v:440},
     {cId:'c_demo_dist',pId:'p30',v:320},{cId:'c_demo_dist',pId:'p31',v:330},
-    // Cliente final demo — precio de lista
-    {cId:'c_demo_final',pId:'p1',v:3900},{cId:'c_demo_final',pId:'p2',v:3900},
-    {cId:'c_demo_final',pId:'p13',v:900},{cId:'c_demo_final',pId:'p17',v:400},{cId:'c_demo_final',pId:'p19',v:180},
   ],
 
   usuarios: [
@@ -143,12 +141,19 @@ const DATA = {
     { id:'u4', nombre:'Facturación Demo', email:'facturacion@masandera.cl', pass:simpleHash('fact'), rol:'facturacion', activo:true },
     // Perfiles de prueba del login — passwords gestionadas por Firebase Auth (pass:null)
     { id:'u5', nombre:'La Madre Distribución (Demo)', email:'lamadre@cliente.cl', pass:null, rol:'cliente', clienteId:'c_demo_dist', activo:true },
-    { id:'u6', nombre:'El Patio (Demo)', email:'elpatio@cliente.cl', pass:null, rol:'cliente', clienteId:'c_demo_final', activo:true },
+    { id:'u_hornitos', nombre:'Los Hornitos de Curacaví', email:'hornitos@cliente.cl', pass:null, rol:'cliente', clienteId:'c_hornitos', activo:true },
     // Cuentas reales del piloto — passwords gestionadas por Firebase Auth (pass:null)
     { id:'u_rodrigo', nombre:'Rodrigo Alfaro', email:'rodrigo.alfaro.p@gmail.com', pass:null, rol:'gerente', activo:true },
     { id:'u_lamadre', nombre:'La Madre', email:'delacuadrajosefa@gmail.com', pass:null, rol:'cliente', clienteId:'c_lamadre', activo:true },
   ],
 };
+
+// Precios de Los Hornitos de Curacaví: precio de lista como punto de partida
+// (getPrecio no usa precioLista como fallback — todo cliente necesita entradas
+// en DATA.precios). Rodrigo los ajusta en Clientes → Catálogo.
+DATA.productos.filter(p => p.activo && p.precioLista > 0).forEach(p => {
+  DATA.precios.push({ cId:'c_hornitos', pId:p.id, v:p.precioLista });
+});
 
 // Pedido de demostración — en estado "enviado" para recorrer todo el flujo
 let INVENTARIO = [];

@@ -13,7 +13,7 @@ function ensurePilotUsers() {
     { id:'u_rodrigo', nombre:'Rodrigo Alfaro', email:'rodrigo.alfaro.p@gmail.com', pass:null, rol:'gerente', activo:true },
     { id:'u_lamadre', nombre:'La Madre', email:'delacuadrajosefa@gmail.com', pass:null, rol:'cliente', clienteId:'c_lamadre', activo:true },
     { id:'u5', nombre:'La Madre Distribución (Demo)', email:'lamadre@cliente.cl', pass:null, rol:'cliente', clienteId:'c_demo_dist', activo:true },
-    { id:'u6', nombre:'El Patio (Demo)', email:'elpatio@cliente.cl', pass:null, rol:'cliente', clienteId:'c_demo_final', activo:true },
+    { id:'u_hornitos', nombre:'Los Hornitos de Curacaví', email:'hornitos@cliente.cl', pass:null, rol:'cliente', clienteId:'c_hornitos', activo:true },
   ];
   pilotUsers.forEach(u => {
     if (!DATA.usuarios.find(x => x.email.toLowerCase() === u.email.toLowerCase())) {
@@ -37,30 +37,41 @@ function ensurePilotUsers() {
           contacto:'', direccion:'', ciudad:'Santiago', productosAsignados:['p17','p28','p30','p31'] },
       ],
       activo:true },
-    { id:'c_demo_final', nombre:'El Patio (Demo)',
-      razonSocial:'El Patio Demo SpA', rut:'77.222.222-2',
-      tipo:'final', rubro:'Restaurant', giro:'Venta de alimentos',
-      contacto:'Pedro Demo', telefono:'+56 9 2222 2222',
-      direccion:'Calle Demo 300', ciudad:'Santiago',
-      productosAsignados:['p1','p2','p13','p17','p19'],
-      activo:true },
+    { id:'c_hornitos', nombre:'Los Hornitos de Curacaví',
+      razonSocial:'', rut:'', tipo:'final',
+      rubro:'Panadería', giro:'', contacto:'', telefono:'',
+      direccion:'', ciudad:'Curacaví', productosAsignados:[], activo:true },
   ];
   pilotClientes.forEach(c => {
     if (!DATA.clientes.find(x => x.id === c.id)) DATA.clientes.push(c);
   });
-  // Precios de los perfiles demo (getPrecio no usa precioLista como fallback)
+  // Precios de los perfiles demo y del piloto (getPrecio no usa precioLista como fallback)
   const demoPrecios = [
     {cId:'c_demo_dist',pId:'p1',v:3500},{cId:'c_demo_dist',pId:'p2',v:3500},{cId:'c_demo_dist',pId:'p3',v:4100},
     {cId:'c_demo_dist',pId:'p13',v:800},{cId:'c_demo_dist',pId:'p15',v:1600},
     {cId:'c_demo_dist',pId:'p17',v:360},{cId:'c_demo_dist',pId:'p19',v:160},
     {cId:'c_demo_dist',pId:'p28',v:440},
     {cId:'c_demo_dist',pId:'p30',v:320},{cId:'c_demo_dist',pId:'p31',v:330},
-    {cId:'c_demo_final',pId:'p1',v:3900},{cId:'c_demo_final',pId:'p2',v:3900},
-    {cId:'c_demo_final',pId:'p13',v:900},{cId:'c_demo_final',pId:'p17',v:400},{cId:'c_demo_final',pId:'p19',v:180},
   ];
+  // Hornitos parte con precio de lista en todo el catálogo activo
+  DATA.productos.filter(p => p.activo && p.precioLista > 0).forEach(p => {
+    demoPrecios.push({ cId:'c_hornitos', pId:p.id, v:p.precioLista });
+  });
   demoPrecios.forEach(p => {
     if (!DATA.precios.find(x => x.cId === p.cId && x.pId === p.pId)) DATA.precios.push(p);
   });
+
+  // El Patio (demo) fue eliminado el 2026-07-08 — purgarlo de snapshots
+  // viejos de localStorage para que no reaparezca en dispositivos del piloto.
+  for (let i = DATA.usuarios.length - 1; i >= 0; i--) {
+    if ((DATA.usuarios[i].email || '').toLowerCase() === 'elpatio@cliente.cl') DATA.usuarios.splice(i, 1);
+  }
+  for (let i = DATA.clientes.length - 1; i >= 0; i--) {
+    if (DATA.clientes[i].id === 'c_demo_final') DATA.clientes.splice(i, 1);
+  }
+  for (let i = DATA.precios.length - 1; i >= 0; i--) {
+    if (DATA.precios[i].cId === 'c_demo_final') DATA.precios.splice(i, 1);
+  }
 }
 
 // Firebase Auth listener — única fuente de verdad sobre el estado de sesión.
